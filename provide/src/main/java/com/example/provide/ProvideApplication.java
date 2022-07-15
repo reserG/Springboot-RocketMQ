@@ -11,8 +11,5 @@ public class ProvideApplication {
     public static void main(String[] args) {
         SpringApplication.run(ProvideApplication.class, args);
     }
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
+
 }

@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+#rocketmq配置信息
+rocketmq:
+  #nameservice服务器地址（多个以英文逗号隔开）
+  name-server: 127.0.0.1:9876
+  #生产者配置
+  producer:
+    #组名
+    group: group_rocketmq
+    #目的地（topic:tag）
+    #topic
+    topic: topic
+    #sync tag(同步消息tag)
+    sync-tag: sync-tags
+    #async tag(异步消息tag)
+    async-tag: async-tags
+    #oneway tag(单向消息tag)
+    oneway-tag: oneway-tags
+
+logging:
+  file:
+    path: /usr/log/mqproductservice/mqproductservice.log
+  level:
+    root: INFO
+    com.anran.projectmanage.mapper: DEBUG

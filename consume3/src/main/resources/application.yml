@@ -1,5 +1,5 @@
 server:
-  port: 8084
+  port: 8083
 
 #rocketmq配置信息
 rocketmq:
@@ -8,11 +8,11 @@ rocketmq:
   #消费者配置
   consumer:
     #组名
-    group: anran-consumer-group
+    group: group_rocketmq
     #监听主题
-    topic: anran-topic
-    #tags（监听多个tag时使用 || 进行分割，如果监听所有使用*或者不填）
-    tags: anran-sync-tags||anran-async-tags||anran-oneway-tags
+    topic: topic
+    #tags（监听多个tag时使用 || 进行分割，如果监听所有使用*或者不填）,支持sql过滤
+    tags: sync-tags||async-tags||oneway-tags
 
 logging:
   file:

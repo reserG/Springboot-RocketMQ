@@ -1,8 +1,10 @@
 package com.example.provide.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.provide.entity.Order;
 import com.example.provide.entity.ResponseMsg;
+import com.example.provide.entity.User;
 import com.example.provide.listennerr.SendCallbackListener;
 import com.example.provide.util.ListSplitter;
 import org.apache.rocketmq.client.producer.MessageQueueSelector;
@@ -16,13 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 @RestController
 @RequestMapping("/mqMessageController")
@@ -31,6 +36,7 @@ public class MqMessageController {
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
+
 
     @Value(value = "${rocketmq.producer.topic}:${rocketmq.producer.sync-tag}")
     private String syncTag;
@@ -41,13 +47,29 @@ public class MqMessageController {
     @Value(value = "${rocketmq.producer.topic}:${rocketmq.producer.oneway-tag}")
     private String onewayTag;
 
+    @RequestMapping("/hello")
+    public String hello() {
+        System.out.println(syncTag + "   "  + asyncag + "  " +onewayTag);
+        // 构建消息
+       String message = "hello";
+       rocketMQTemplate.convertAndSend("topic",message);
+
+        Message<String> message2 = MessageBuilder.withPayload(message)
+                .setHeader(RocketMQHeaders.KEYS, 1)
+                .build();
+        SendResult sendResult = rocketMQTemplate.syncSend(syncTag, message2);
+        System.out.println(" sendResult " + sendResult.getSendStatus());
+    return "wqe";
+    }
+
+
     /**
      * rocketmq 同步消息
      *
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushMessage.action")
+    @RequestMapping("/pushMessage")
     public ResponseMsg pushMessage(@RequestParam("id") int id) {
         log.info("pushMessage start : " + id);
         // 构建消息
@@ -72,7 +94,7 @@ public class MqMessageController {
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushAsyncMessage.action")
+    @RequestMapping("/pushAsyncMessage")
     public ResponseMsg pushAsyncMessage(@RequestParam("id") int id) {
         log.info("pushAsyncMessage start : " + id);
         // 构建消息
@@ -94,7 +116,7 @@ public class MqMessageController {
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushOneWayMessage.action")
+    @RequestMapping("/pushOneWayMessage")
     public ResponseMsg pushOneWayMessage(@RequestParam("id") int id) {
         log.info("pushOneWayMessage start : " + id);
         // 构建消息
@@ -116,7 +138,7 @@ public class MqMessageController {
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushSequeueMessage.action")
+    @RequestMapping("/pushSequeueMessage")
     public ResponseMsg pushSequeueMessage(@RequestParam("id") int id) {
         log.info("pushSequeueMessage start : " + id);
         // 创建三个不同订单的不同步骤
@@ -166,7 +188,7 @@ public class MqMessageController {
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushDelayMessage.action")
+    @RequestMapping("/pushDelayMessage")
     public ResponseMsg pushDelayMessage(@RequestParam("id") int id) {
         log.info("pushDelayMessage start : " + id);
         // 构建消息
@@ -178,8 +200,8 @@ public class MqMessageController {
         // 超时时针对请求broker然后结果返回给product的耗时
         // 现在RocketMq并不支持任意时间的延时，需要设置几个固定的延时等级，从1s到2h分别对应着等级1到18
         // private String messageDelayLevel = "1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h";
-        SendResult sendResult = rocketMQTemplate.syncSend(syncTag, message, 1 * 1000l, 4);
-        log.info("pushDelayMessage finish : " + id + ", sendResult : " + JSONObject.toJSONString(sendResult));
+        SendResult sendResult = rocketMQTemplate.syncSend(syncTag, message, 1 * 1000l, 3);
+        log.info("pushDelayMessage finish : " + id + " time : "+ new Date().toString() +",sendResult : " + JSONObject.toJSONString(sendResult));
         ResponseMsg msg = new ResponseMsg();
         // 解析发送结果
         if (sendResult.getSendStatus() == SendStatus.SEND_OK) {
@@ -194,7 +216,7 @@ public class MqMessageController {
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushBatchMessage.action")
+    @RequestMapping("/pushBatchMessage")
     public ResponseMsg pushBatchMessage(@RequestParam("id") int id) {
         log.info("pushBatchMessage start : " + id);
         // 创建消息集合
@@ -226,7 +248,7 @@ public class MqMessageController {
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushSqlMessage.action")
+    @RequestMapping("/pushSqlMessage")
     public ResponseMsg pushSqlMessage(@RequestParam("id") int id) {
         log.info("pushSqlMessage start : " + id);
         // 创建消息集合
@@ -240,6 +262,7 @@ public class MqMessageController {
                     .setHeader("money", i)
                     .build();
             messages.add(message);
+            System.out.println("myId " + myId);
         }
         rocketMQTemplate.syncSend(syncTag, messages);
         log.info("pushSqlMessage finish : " + id);
@@ -254,7 +277,7 @@ public class MqMessageController {
      * @param id 消息
      * @return 结果
      */
-    @RequestMapping("/pushTransactionMessage.action")
+    @RequestMapping("/pushTransactionMessage")
     public ResponseMsg pushTransactionMessage(@RequestParam("id") int id) {
         log.info("pushTransactionMessage start : " + id);
         // 创建消息

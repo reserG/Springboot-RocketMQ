@@ -1,18 +1,18 @@
 server:
-  port: 8083
+  port: 8081
 
-#rocketmq????
+#rocketmq配置信息
 rocketmq:
-  #nameservice????????????????
+  #nameservice服务器地址（多个以英文逗号隔开）
   name-server: 127.0.0.1:9876
-  #?????
+  #消费者配置
   consumer:
-    #??
-    group: anran-consumer-group
-    #????
-    topic: anran-topic
-    #tags?????tag??? || ?????????????*?????
-    tags: anran-sync-tags||anran-async-tags||anran-oneway-tags
+    #组名
+    group: group_rocketmq
+    #监听主题
+    topic: topic
+    #tags（监听多个tag时使用 || 进行分割，如果监听所有使用*或者不填）
+    tags: sync-tags||async-tags||oneway-tags
 
 logging:
   file:
